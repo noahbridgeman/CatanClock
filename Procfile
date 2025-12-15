@@ -1,1 +1,1 @@
-web: gunicorn 'app:create_app()'
+web: gunicorn 'CatanClock.app:create_app()'
