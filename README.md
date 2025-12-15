@@ -2,6 +2,9 @@
 
 Timer für Brettspiele mit individuellen Spieler-Zeiten und farbcodierter Anzeige.
 
+
+running at: https://catanclock-production.up.railway.app/settings
+
 ## Features
 
 - 2-4 Spieler mit eigenen Timern (10-40 Min)
