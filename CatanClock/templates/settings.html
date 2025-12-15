@@ -75,16 +75,6 @@
                     <input type="hidden" name="time_per_player" id="time_per_player" value="1200">
                     <input type="hidden" name="color_order" id="color_order">
 
-                    <!-- Spieleranzahl -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Spieleranzahl</label>
-                        <div class="flex gap-2">
-                            <button type="button" onclick="setPlayers(2)" class="player-btn flex-1 py-2 px-4 rounded-lg border-2 border-gray-600 hover:border-blue-500 transition text-gray-300">2</button>
-                            <button type="button" onclick="setPlayers(3)" class="player-btn flex-1 py-2 px-4 rounded-lg border-2 border-gray-600 hover:border-blue-500 transition text-gray-300">3</button>
-                            <button type="button" onclick="setPlayers(4)" class="player-btn flex-1 py-2 px-4 rounded-lg border-2 border-blue-500 bg-blue-900/30 text-white">4</button>
-                        </div>
-                    </div>
-
                     <!-- Zeit pro Spieler -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-300 mb-2">Zeit pro Spieler</label>
@@ -98,29 +88,31 @@
 
                     <!-- Farben & Reihenfolge -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Spieler-Reihenfolge (Drag & Drop)</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-3">Spieler wählen & sortieren (Drag & Drop)</label>
+                        <p class="text-xs text-gray-400 mb-3">Aktiviere Checkboxen für Spieler, ziehe zum Sortieren</p>
                         <div id="colorList" class="space-y-2">
                             <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-red-600 text-white rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
                                 <span class="text-xl">⋮⋮</span>
                                 <span class="flex-1 font-medium">Rot</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
                             </div>
                             <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-gray-100 border-2 border-gray-600 rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
                                 <span class="text-xl">⋮⋮</span>
                                 <span class="flex-1 font-medium text-gray-700">Weiß</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
                             </div>
                             <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-blue-600 text-white rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
                                 <span class="text-xl">⋮⋮</span>
                                 <span class="flex-1 font-medium">Blau</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
                             </div>
                             <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-yellow-500 rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
                                 <span class="text-xl">⋮⋮</span>
                                 <span class="flex-1 font-medium text-gray-900">Gelb</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
                             </div>
                         </div>
+                        <p class="text-sm text-gray-400 mt-3">Ausgewählte Spieler: <span id="playerCountDisplay" class="text-white font-bold">4</span></p>
                     </div>
 
                     <div class="flex gap-3">
@@ -143,8 +135,6 @@
             'blau': { bg: 'bg-blue-600', name: 'Blau' },
             'gelb': { bg: 'bg-yellow-500', name: 'Gelb', textClass: 'text-gray-900' }
         };
-
-        let playerCount = 4;
 
         // Aktuelle Zeit formatieren und anzeigen
         const currentTime = {{ time }};
@@ -195,28 +185,17 @@
 
         function resetGame() {
             if (confirm('Spiel zurücksetzen? Alle Zeiten werden auf die ursprünglichen Werte zurückgesetzt.')) {
-                // localStorage komplett leeren
                 localStorage.removeItem('playerTimes');
                 localStorage.removeItem('currentPlayerIndex');
                 localStorage.removeItem('eliminatedPlayers');
-
-                // Zurück zum Spiel - game.html initialisiert dann neu mit den Session-Werten
                 window.location.href = '{{ url_for("logic.game") }}';
             }
         }
 
-        function setPlayers(num) {
-            playerCount = num;
-            document.getElementById('player_count').value = num;
-            document.querySelectorAll('.player-btn').forEach((btn, idx) => {
-                if (idx === num - 2) {
-                    btn.classList.add('border-blue-500', 'bg-blue-900/30', 'text-white');
-                    btn.classList.remove('text-gray-300');
-                } else {
-                    btn.classList.remove('border-blue-500', 'bg-blue-900/30', 'text-white');
-                    btn.classList.add('text-gray-300');
-                }
-            });
+        function updatePlayerCount() {
+            const checkedCount = document.querySelectorAll('.color-item input[type="checkbox"]:checked').length;
+            document.getElementById('player_count').value = checkedCount;
+            document.getElementById('playerCountDisplay').textContent = checkedCount;
         }
 
         function updateTime(seconds) {
@@ -235,9 +214,14 @@
                     colors.push(colorName.toLowerCase());
                 }
             });
-            document.getElementById('color_order').value = JSON.stringify(colors);
 
-            // localStorage leeren bei neuem Spiel
+            if (colors.length < 2) {
+                e.preventDefault();
+                alert('Mindestens 2 Spieler benötigt!');
+                return;
+            }
+
+            document.getElementById('color_order').value = JSON.stringify(colors);
             localStorage.removeItem('playerTimes');
             localStorage.removeItem('currentPlayerIndex');
             localStorage.removeItem('eliminatedPlayers');
