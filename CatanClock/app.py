@@ -25,7 +25,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from . import logic
+    from CatanClock import logic
     app.register_blueprint(logic.bp)
 
     @app.route('/')

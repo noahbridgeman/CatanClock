@@ -6,45 +6,45 @@
     <title>Spiel läuft</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body id="gameBody" class="min-h-screen flex items-center justify-center p-4 transition-colors duration-500">
+<body id="gameBody" class="min-h-screen flex items-center justify-center p-2 sm:p-4 transition-colors duration-500">
     <!-- Settings Button -->
-    <a href="{{ url_for('logic.settings') }}" class="fixed top-4 right-4 bg-black bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-lg shadow-lg transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <a href="{{ url_for('logic.settings') }}" class="fixed top-2 right-2 sm:top-4 sm:right-4 bg-black bg-opacity-30 hover:bg-opacity-50 text-white p-2 sm:p-3 rounded-lg shadow-lg transition">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
         </svg>
     </a>
 
     <!-- Zurück Button (links oben) -->
-    <button onclick="previousPlayer()" class="fixed top-4 left-4 bg-black bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-lg shadow-lg transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button onclick="previousPlayer()" class="fixed top-2 left-2 sm:top-4 sm:left-4 bg-black bg-opacity-30 hover:bg-opacity-50 text-white p-2 sm:p-3 rounded-lg shadow-lg transition">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
     </button>
 
-    <div class="text-center">
+    <div class="text-center w-full px-4">
         <!-- Spieler Name -->
-        <div id="currentPlayerDisplay" class="text-8xl font-bold mb-12 drop-shadow-2xl">
+        <div id="currentPlayerDisplay" class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 md:mb-12 drop-shadow-2xl">
             <!-- Wird per JS gesetzt -->
         </div>
 
         <!-- Timer -->
-        <div id="timerDisplay" class="text-9xl font-mono font-bold mb-16 drop-shadow-2xl">
+        <div id="timerDisplay" class="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-mono font-bold mb-8 sm:mb-12 md:mb-16 drop-shadow-2xl break-all">
             00:00
         </div>
 
         <!-- Next Button -->
-        <button id="nextPlayerBtn" class="bg-black bg-opacity-30 hover:bg-opacity-50 text-white font-bold py-6 px-16 rounded-2xl text-3xl transition shadow-2xl">
+        <button id="nextPlayerBtn" class="bg-black bg-opacity-30 hover:bg-opacity-50 text-white font-bold py-4 px-8 sm:py-5 sm:px-12 md:py-6 md:px-16 rounded-2xl text-xl sm:text-2xl md:text-3xl transition shadow-2xl">
             Nächster Spieler
         </button>
     </div>
 
     <!-- Zeit abgelaufen Modal -->
     <div id="timeoutModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md">
-            <h2 class="text-3xl font-bold text-white mb-6">Zeit abgelaufen!</h2>
-            <p class="text-gray-300 mb-8" id="timeoutPlayerName"></p>
-            <div class="flex gap-4">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-6 sm:p-8 text-center max-w-md w-full mx-4">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">Zeit abgelaufen!</h2>
+            <p class="text-gray-300 mb-6 sm:mb-8" id="timeoutPlayerName"></p>
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button onclick="addExtraTime()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">
                     +5 Minuten
                 </button>
@@ -88,17 +88,17 @@
 
             // Body Hintergrund
             const body = document.getElementById('gameBody');
-            body.className = `min-h-screen flex items-center justify-center p-4 transition-colors duration-500 ${colorInfo.bodyClass}`;
+            body.className = `min-h-screen flex items-center justify-center p-2 sm:p-4 transition-colors duration-500 ${colorInfo.bodyClass}`;
 
             // Spieler Name
             const display = document.getElementById('currentPlayerDisplay');
             display.textContent = colorInfo.name;
-            display.className = `text-8xl font-bold mb-12 drop-shadow-2xl ${colorInfo.textClass}`;
+            display.className = `text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 md:mb-12 drop-shadow-2xl ${colorInfo.textClass}`;
 
             // Timer
             const timer = document.getElementById('timerDisplay');
             timer.textContent = formatTime(playerTimes[currentColor]);
-            timer.className = `text-9xl font-mono font-bold mb-16 drop-shadow-2xl ${colorInfo.textClass}`;
+            timer.className = `text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-mono font-bold mb-8 sm:mb-12 md:mb-16 drop-shadow-2xl break-all ${colorInfo.textClass}`;
         }
 
         function startTimer() {
