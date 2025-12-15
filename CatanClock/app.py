@@ -1,5 +1,4 @@
 import os
-from CatanClock import logic
 
 from flask import Flask, render_template, redirect, url_for, session
 from flask import g
@@ -26,7 +25,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from . import logic
+    from CatanClock import logic
     app.register_blueprint(logic.bp)
 
     @app.route('/')
