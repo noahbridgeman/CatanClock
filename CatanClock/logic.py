@@ -10,6 +10,7 @@ def settings():
         session['game_settings'] = {
             'players': int(request.form['player_count']),
             'time': int(request.form['time_per_player']),
+            'increment': int(request.form.get('increment', 0)),
             'colors': json.loads(request.form['color_order'])
         }
         return redirect(url_for('logic.game'))
@@ -18,12 +19,14 @@ def settings():
         session['game_settings'] = {
             'players': 4,
             'time': 1200,
+            'increment': 0,
             'colors': ['rot', 'weiß', 'blau', 'gelb']
         }
 
     return render_template('settings.html',
                            players=session['game_settings']['players'],
                            time=session['game_settings']['time'],
+                           increment=session['game_settings'].get('increment', 0),
                            colors=session['game_settings']['colors'])
 
 
@@ -32,4 +35,5 @@ def game():
     return render_template('game.html',
                            players=session['game_settings']['players'],
                            time=session['game_settings']['time'],
+                           increment=session['game_settings'].get('increment', 0),
                            colors=session['game_settings']['colors'])

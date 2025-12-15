@@ -7,40 +7,41 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
-    <!-- Zurück Button -->
-    <a href="{{ url_for('logic.game') }}" class="fixed top-4 left-4 bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-lg shadow-lg transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-    </a>
+<!-- Zurück Button -->
+<a href="{{ url_for('logic.game') }}"
+   class="fixed top-4 left-4 bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-lg shadow-lg transition">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+    </svg>
+</a>
 
-    <div class="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-white">Einstellungen</h1>
+<div class="bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-white">Einstellungen</h1>
 
-        <!-- Aktuelles Spiel -->
-        <div class="mb-8 p-4 bg-gray-700 rounded-lg">
-            <h2 class="text-lg font-semibold text-gray-300 mb-4">Aktuelles Spiel</h2>
+    <!-- Aktuelles Spiel -->
+    <div class="mb-8 p-4 bg-gray-700 rounded-lg">
+        <h2 class="text-lg font-semibold text-gray-300 mb-4">Aktuelles Spiel</h2>
 
-            <!-- Zeitübersicht -->
-            <div id="timeOverview" class="mb-4 hidden">
-                <h3 class="text-sm text-gray-400 mb-2">Verbleibende Zeiten</h3>
-                <div id="timeList" class="space-y-2">
-                    <!-- Wird per JS gefüllt -->
-                </div>
+        <!-- Zeitübersicht -->
+        <div id="timeOverview" class="mb-4 hidden">
+            <h3 class="text-sm text-gray-400 mb-2">Verbleibende Zeiten</h3>
+            <div id="timeList" class="space-y-2">
+                <!-- Wird per JS gefüllt -->
             </div>
+        </div>
 
-            <!-- Game Info wenn kein laufendes Spiel -->
-            <div id="noGameInfo" class="hidden">
-                <p class="text-gray-400 text-sm mb-3">Kein laufendes Spiel</p>
-            </div>
+        <!-- Game Info wenn kein laufendes Spiel -->
+        <div id="noGameInfo" class="hidden">
+            <p class="text-gray-400 text-sm mb-3">Kein laufendes Spiel</p>
+        </div>
 
-            <!-- Aktuelle Einstellungen -->
-            <div class="text-gray-300 text-sm space-y-1 mb-4">
-                <p><span class="text-gray-400">Spieler:</span> {{ players }}</p>
-                <p><span class="text-gray-400">Zeit:</span> <span id="currentTimeDisplay"></span></p>
-                <p><span class="text-gray-400">Farben:</span>
-                    {% for color in colors %}
-                        <span class="inline-block px-2 py-1 rounded text-xs
+        <!-- Aktuelle Einstellungen -->
+        <div class="text-gray-300 text-sm space-y-1 mb-4">
+            <p><span class="text-gray-400">Spieler:</span> {{ players }}</p>
+            <p><span class="text-gray-400">Zeit:</span> <span id="currentTimeDisplay"></span></p>
+            <p><span class="text-gray-400">Farben:</span>
+                {% for color in colors %}
+                    <span class="inline-block px-2 py-1 rounded text-xs
                             {% if color == 'rot' %}bg-red-600 text-white
                             {% elif color == 'weiß' %}bg-gray-100 text-gray-900
                             {% elif color == 'blau' %}bg-blue-600 text-white
@@ -48,217 +49,257 @@
                             {% endif %}">
                             {{ color|capitalize }}
                         </span>
-                    {% endfor %}
-                </p>
-            </div>
-
-            <!-- Reset Button -->
-            <button onclick="resetGame()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded-lg transition text-sm">
-                Spiel zurücksetzen (gleiche Einstellungen)
-            </button>
+                {% endfor %}
+            </p>
         </div>
 
-        <!-- Neues Spiel -->
-        <div class="mb-6">
-            <button id="newGameToggle" onclick="toggleNewGameForm()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg">
-                Neues Spiel starten
-            </button>
-        </div>
-
-        <!-- Neues Spiel Form (versteckt) -->
-        <div id="newGameForm" class="hidden">
-            <div class="border-t border-gray-700 pt-6">
-                <h2 class="text-lg font-semibold text-white mb-4">Neues Spiel konfigurieren</h2>
-
-                <form action="{{ url_for('logic.settings') }}" method="POST">
-                    <input type="hidden" name="player_count" id="player_count" value="4">
-                    <input type="hidden" name="time_per_player" id="time_per_player" value="1200">
-                    <input type="hidden" name="color_order" id="color_order">
-
-                    <!-- Zeit pro Spieler -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Zeit pro Spieler</label>
-                        <div class="flex items-center gap-3">
-                            <input type="range" min="600" max="2400" step="60" value="1200"
-                                   class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                                   oninput="updateTime(this.value)">
-                            <span id="timeDisplay" class="text-lg font-semibold text-white w-20 text-right">20:00</span>
-                        </div>
-                    </div>
-
-                    <!-- Farben & Reihenfolge -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Spieler wählen & sortieren (Drag & Drop)</label>
-                        <p class="text-xs text-gray-400 mb-3">Aktiviere Checkboxen für Spieler, ziehe zum Sortieren</p>
-                        <div id="colorList" class="space-y-2">
-                            <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-red-600 text-white rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
-                                <span class="text-xl">⋮⋮</span>
-                                <span class="flex-1 font-medium">Rot</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
-                            </div>
-                            <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-gray-100 border-2 border-gray-600 rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
-                                <span class="text-xl">⋮⋮</span>
-                                <span class="flex-1 font-medium text-gray-700">Weiß</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
-                            </div>
-                            <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-blue-600 text-white rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
-                                <span class="text-xl">⋮⋮</span>
-                                <span class="flex-1 font-medium">Blau</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
-                            </div>
-                            <div draggable="true" class="color-item flex items-center gap-3 p-3 bg-yellow-500 rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
-                                <span class="text-xl">⋮⋮</span>
-                                <span class="flex-1 font-medium text-gray-900">Gelb</span>
-                                <input type="checkbox" checked class="w-5 h-5 cursor-pointer" onchange="updatePlayerCount()">
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-400 mt-3">Ausgewählte Spieler: <span id="playerCountDisplay" class="text-white font-bold">4</span></p>
-                    </div>
-
-                    <div class="flex gap-3">
-                        <button type="button" onclick="toggleNewGameForm()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition">
-                            Abbrechen
-                        </button>
-                        <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition shadow-lg">
-                            Starten
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <!-- Reset Button -->
+        <button onclick="resetGame()"
+                class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded-lg transition text-sm">
+            Spiel zurücksetzen (gleiche Einstellungen)
+        </button>
     </div>
 
-    <script>
-        const colorMap = {
-            'rot': { bg: 'bg-red-600', name: 'Rot' },
-            'weiß': { bg: 'bg-gray-100', name: 'Weiß', textClass: 'text-gray-900' },
-            'blau': { bg: 'bg-blue-600', name: 'Blau' },
-            'gelb': { bg: 'bg-yellow-500', name: 'Gelb', textClass: 'text-gray-900' }
-        };
+    <!-- Neues Spiel -->
+    <div class="mb-6">
+        <button id="newGameToggle" onclick="toggleNewGameForm()"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg">
+            Neues Spiel starten
+        </button>
+    </div>
 
-        // Aktuelle Zeit formatieren und anzeigen
-        const currentTime = {{ time }};
-        const mins = Math.floor(currentTime / 60);
-        const secs = currentTime % 60;
-        document.getElementById('currentTimeDisplay').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    <!-- Neues Spiel Form (versteckt) -->
+    <div id="newGameForm" class="hidden">
+        <div class="border-t border-gray-700 pt-6">
+            <h2 class="text-lg font-semibold text-white mb-4">Neues Spiel konfigurieren</h2>
 
-        // Zeitübersicht laden
-        const savedTimes = localStorage.getItem('playerTimes');
-        if (savedTimes) {
-            const playerTimes = JSON.parse(savedTimes);
-            const overview = document.getElementById('timeOverview');
-            const timeList = document.getElementById('timeList');
+            <form action="{{ url_for('logic.settings') }}" method="POST">
+                <input type="hidden" name="player_count" id="player_count" value="4">
+                <input type="hidden" name="time_per_player" id="time_per_player" value="1200">
+                <input type="hidden" name="color_order" id="color_order">
 
-            overview.classList.remove('hidden');
+                <!-- Zeit pro Spieler -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Zeit pro Spieler</label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" min="600" max="2400" step="60" value="1200"
+                               class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                               oninput="updateTime(this.value)">
+                        <span id="timeDisplay" class="text-lg font-semibold text-white w-20 text-right">20:00</span>
+                    </div>
+                </div>
 
-            Object.entries(playerTimes).forEach(([color, seconds]) => {
-                const colorInfo = colorMap[color];
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                <!-- Increment -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Increment pro Zug</label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" min="0" max="300" step="30" value="{{ increment }}" name="increment"
+                               id="increment"
+                               class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                               oninput="updateIncrement(this.value)">
+                        <span id="incrementDisplay" class="text-lg font-semibold text-white w-20 text-right">0:00</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Zeit die nach jedem Zug hinzugefügt wird</p>
+                </div>
 
-                const textColor = colorInfo.textClass || 'text-white';
+                <!-- Farben & Reihenfolge -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-3">Spieler wählen & sortieren (Drag &
+                        Drop)</label>
+                    <p class="text-xs text-gray-400 mb-3">Aktiviere Checkboxen für Spieler, ziehe zum Sortieren</p>
+                    <div id="colorList" class="space-y-2">
+                        <div draggable="true"
+                             class="color-item flex items-center gap-3 p-3 bg-red-600 text-white rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
+                            <span class="text-xl">⋮⋮</span>
+                            <span class="flex-1 font-medium">Rot</span>
+                            <input type="checkbox" checked class="w-5 h-5 cursor-pointer"
+                                   onchange="updatePlayerCount()">
+                        </div>
+                        <div draggable="true"
+                             class="color-item flex items-center gap-3 p-3 bg-gray-100 border-2 border-gray-600 rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
+                            <span class="text-xl">⋮⋮</span>
+                            <span class="flex-1 font-medium text-gray-700">Weiß</span>
+                            <input type="checkbox" checked class="w-5 h-5 cursor-pointer"
+                                   onchange="updatePlayerCount()">
+                        </div>
+                        <div draggable="true"
+                             class="color-item flex items-center gap-3 p-3 bg-blue-600 text-white rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
+                            <span class="text-xl">⋮⋮</span>
+                            <span class="flex-1 font-medium">Blau</span>
+                            <input type="checkbox" checked class="w-5 h-5 cursor-pointer"
+                                   onchange="updatePlayerCount()">
+                        </div>
+                        <div draggable="true"
+                             class="color-item flex items-center gap-3 p-3 bg-yellow-500 rounded-lg cursor-move shadow-lg hover:shadow-xl transition">
+                            <span class="text-xl">⋮⋮</span>
+                            <span class="flex-1 font-medium text-gray-900">Gelb</span>
+                            <input type="checkbox" checked class="w-5 h-5 cursor-pointer"
+                                   onchange="updatePlayerCount()">
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 mt-3">Ausgewählte Spieler: <span id="playerCountDisplay"
+                                                                                     class="text-white font-bold">4</span>
+                    </p>
+                </div>
 
-                timeList.innerHTML += `
+                <div class="flex gap-3">
+                    <button type="button" onclick="toggleNewGameForm()"
+                            class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition">
+                        Abbrechen
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition shadow-lg">
+                        Starten
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const colorMap = {
+        'rot': {bg: 'bg-red-600', name: 'Rot'},
+        'weiß': {bg: 'bg-gray-100', name: 'Weiß', textClass: 'text-gray-900'},
+        'blau': {bg: 'bg-blue-600', name: 'Blau'},
+        'gelb': {bg: 'bg-yellow-500', name: 'Gelb', textClass: 'text-gray-900'}
+    };
+
+    // Aktuelle Zeit formatieren und anzeigen
+    const currentTime = {{ time }};
+    const mins = Math.floor(currentTime / 60);
+    const secs = currentTime % 60;
+    document.getElementById('currentTimeDisplay').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+    // Zeitübersicht laden
+    const savedTimes = localStorage.getItem('playerTimes');
+    if (savedTimes) {
+        const playerTimes = JSON.parse(savedTimes);
+        const overview = document.getElementById('timeOverview');
+        const timeList = document.getElementById('timeList');
+
+        overview.classList.remove('hidden');
+
+        Object.entries(playerTimes).forEach(([color, seconds]) => {
+            const colorInfo = colorMap[color];
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            const textColor = colorInfo.textClass || 'text-white';
+
+            timeList.innerHTML += `
                     <div class="${colorInfo.bg} rounded-lg p-2 flex justify-between items-center text-sm">
                         <span class="${textColor} font-medium">${colorInfo.name}</span>
                         <span class="${textColor} font-mono font-bold">${timeStr}</span>
                     </div>
                 `;
-            });
+        });
+    } else {
+        document.getElementById('noGameInfo').classList.remove('hidden');
+    }
+
+    function toggleNewGameForm() {
+        const form = document.getElementById('newGameForm');
+        const btn = document.getElementById('newGameToggle');
+
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+            btn.classList.add('hidden');
         } else {
-            document.getElementById('noGameInfo').classList.remove('hidden');
+            form.classList.add('hidden');
+            btn.classList.remove('hidden');
         }
+    }
 
-        function toggleNewGameForm() {
-            const form = document.getElementById('newGameForm');
-            const btn = document.getElementById('newGameToggle');
-
-            if (form.classList.contains('hidden')) {
-                form.classList.remove('hidden');
-                btn.classList.add('hidden');
-            } else {
-                form.classList.add('hidden');
-                btn.classList.remove('hidden');
-            }
-        }
-
-        function resetGame() {
-            if (confirm('Spiel zurücksetzen? Alle Zeiten werden auf die ursprünglichen Werte zurückgesetzt.')) {
-                localStorage.removeItem('playerTimes');
-                localStorage.removeItem('currentPlayerIndex');
-                localStorage.removeItem('eliminatedPlayers');
-                window.location.href = '{{ url_for("logic.game") }}';
-            }
-        }
-
-        function updatePlayerCount() {
-            const checkedCount = document.querySelectorAll('.color-item input[type="checkbox"]:checked').length;
-            document.getElementById('player_count').value = checkedCount;
-            document.getElementById('playerCountDisplay').textContent = checkedCount;
-        }
-
-        function updateTime(seconds) {
-            document.getElementById('time_per_player').value = seconds;
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            document.getElementById('timeDisplay').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const colors = [];
-            document.querySelectorAll('.color-item').forEach(item => {
-                const colorName = item.querySelector('span:nth-child(2)').textContent;
-                const isChecked = item.querySelector('input[type="checkbox"]').checked;
-                if (isChecked) {
-                    colors.push(colorName.toLowerCase());
-                }
-            });
-
-            if (colors.length < 2) {
-                e.preventDefault();
-                alert('Mindestens 2 Spieler benötigt!');
-                return;
-            }
-
-            document.getElementById('color_order').value = JSON.stringify(colors);
+    function resetGame() {
+        if (confirm('Spiel zurücksetzen? Alle Zeiten werden auf die ursprünglichen Werte zurückgesetzt.')) {
             localStorage.removeItem('playerTimes');
             localStorage.removeItem('currentPlayerIndex');
             localStorage.removeItem('eliminatedPlayers');
-        });
+            window.location.href = '{{ url_for("logic.game") }}';
+        }
+    }
 
-        // Drag & Drop
-        let draggedElement = null;
+    function updatePlayerCount() {
+        const checkedCount = document.querySelectorAll('.color-item input[type="checkbox"]:checked').length;
+        document.getElementById('player_count').value = checkedCount;
+        document.getElementById('playerCountDisplay').textContent = checkedCount;
+    }
 
+    function updateTime(seconds) {
+        document.getElementById('time_per_player').value = seconds;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById('timeDisplay').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateIncrement(seconds) {
+        document.getElementById('increment').value = seconds;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById('incrementDisplay').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    const currentIncrement = {{ increment }};
+    const incMins = Math.floor(currentIncrement / 60);  // ← Anderen Namen verwenden
+    const incSecs = currentIncrement % 60;
+    document.getElementById('incrementDisplay').textContent = `${incMins}:${incSecs.toString().padStart(2, '0')}`;
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const colors = [];
         document.querySelectorAll('.color-item').forEach(item => {
-            item.addEventListener('dragstart', function() {
-                draggedElement = this;
-                this.style.opacity = '0.5';
-            });
-
-            item.addEventListener('dragend', function() {
-                this.style.opacity = '1';
-            });
-
-            item.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
-
-            item.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (draggedElement !== this) {
-                    const allItems = [...this.parentNode.children];
-                    const draggedIndex = allItems.indexOf(draggedElement);
-                    const targetIndex = allItems.indexOf(this);
-
-                    if (draggedIndex < targetIndex) {
-                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
-                    } else {
-                        this.parentNode.insertBefore(draggedElement, this);
-                    }
-                }
-            });
+            const colorName = item.querySelector('span:nth-child(2)').textContent;
+            const isChecked = item.querySelector('input[type="checkbox"]').checked;
+            if (isChecked) {
+                colors.push(colorName.toLowerCase());
+            }
         });
-    </script>
+
+        if (colors.length < 2) {
+            e.preventDefault();
+            alert('Mindestens 2 Spieler benötigt!');
+            return;
+        }
+
+        document.getElementById('color_order').value = JSON.stringify(colors);
+        localStorage.removeItem('playerTimes');
+        localStorage.removeItem('currentPlayerIndex');
+        localStorage.removeItem('eliminatedPlayers');
+    });
+
+    // Drag & Drop
+    let draggedElement = null;
+
+    document.querySelectorAll('.color-item').forEach(item => {
+        item.addEventListener('dragstart', function () {
+            draggedElement = this;
+            this.style.opacity = '0.5';
+        });
+
+        item.addEventListener('dragend', function () {
+            this.style.opacity = '1';
+        });
+
+        item.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+
+        item.addEventListener('drop', function (e) {
+            e.preventDefault();
+            if (draggedElement !== this) {
+                const allItems = [...this.parentNode.children];
+                const draggedIndex = allItems.indexOf(draggedElement);
+                const targetIndex = allItems.indexOf(this);
+
+                if (draggedIndex < targetIndex) {
+                    this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggedElement, this);
+                }
+            }
+        });
+    });
+</script>
 </body>
 </html>
