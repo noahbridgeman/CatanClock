@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiel läuft</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body id="gameBody" class="min-h-screen flex items-center justify-center p-4 transition-colors duration-500">
+    <!-- Settings Button -->
+    <a href="{{ url_for('logic.settings') }}" class="fixed top-4 right-4 bg-black bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-lg shadow-lg transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+    </a>
+
+    <!-- Zurück Button (links oben) -->
+    <button onclick="previousPlayer()" class="fixed top-4 left-4 bg-black bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-lg shadow-lg transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </button>
+
+    <div class="text-center">
+        <!-- Spieler Name -->
+        <div id="currentPlayerDisplay" class="text-8xl font-bold mb-12 drop-shadow-2xl">
+            <!-- Wird per JS gesetzt -->
+        </div>
+
+        <!-- Timer -->
+        <div id="timerDisplay" class="text-9xl font-mono font-bold mb-16 drop-shadow-2xl">
+            00:00
+        </div>
+
+        <!-- Next Button -->
+        <button id="nextPlayerBtn" class="bg-black bg-opacity-30 hover:bg-opacity-50 text-white font-bold py-6 px-16 rounded-2xl text-3xl transition shadow-2xl">
+            Nächster Spieler
+        </button>
+    </div>
+
+    <!-- Zeit abgelaufen Modal -->
+    <div id="timeoutModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md">
+            <h2 class="text-3xl font-bold text-white mb-6">Zeit abgelaufen!</h2>
+            <p class="text-gray-300 mb-8" id="timeoutPlayerName"></p>
+            <div class="flex gap-4">
+                <button onclick="addExtraTime()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">
+                    +5 Minuten
+                </button>
+                <button onclick="eliminatePlayer()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition">
+                    Ausschließen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const colorMap = {
+            'rot': { bodyClass: 'bg-red-600', textClass: 'text-white', name: 'Rot' },
+            'weiß': { bodyClass: 'bg-gray-100', textClass: 'text-gray-900', name: 'Weiß' },
+            'blau': { bodyClass: 'bg-blue-600', textClass: 'text-white', name: 'Blau' },
+            'gelb': { bodyClass: 'bg-yellow-500', textClass: 'text-gray-900', name: 'Gelb' }
+        };
+
+        const players = {{ colors|tojson }};
+        const initialTime = {{ time }};
+
+        let playerTimes = {};
+        let currentPlayerIndex = 0;
+        let timerInterval = null;
+        let eliminatedPlayers = new Set();
+
+        // Initialisierung
+        players.forEach(color => {
+            playerTimes[color] = initialTime;
+        });
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            const currentColor = players[currentPlayerIndex];
+            const colorInfo = colorMap[currentColor];
+
+            // Body Hintergrund
+            const body = document.getElementById('gameBody');
+            body.className = `min-h-screen flex items-center justify-center p-4 transition-colors duration-500 ${colorInfo.bodyClass}`;
+
+            // Spieler Name
+            const display = document.getElementById('currentPlayerDisplay');
+            display.textContent = colorInfo.name;
+            display.className = `text-8xl font-bold mb-12 drop-shadow-2xl ${colorInfo.textClass}`;
+
+            // Timer
+            const timer = document.getElementById('timerDisplay');
+            timer.textContent = formatTime(playerTimes[currentColor]);
+            timer.className = `text-9xl font-mono font-bold mb-16 drop-shadow-2xl ${colorInfo.textClass}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+
+            timerInterval = setInterval(() => {
+                const currentColor = players[currentPlayerIndex];
+
+                if (eliminatedPlayers.has(currentColor)) {
+                    nextPlayer();
+                    return;
+                }
+
+                playerTimes[currentColor]--;
+
+                if (playerTimes[currentColor] <= 0) {
+                    playerTimes[currentColor] = 0;
+                    stopTimer();
+                    showTimeoutModal(currentColor);
+                }
+
+                updateDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function nextPlayer() {
+            stopTimer();
+
+            let attempts = 0;
+            do {
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+                attempts++;
+            } while (eliminatedPlayers.has(players[currentPlayerIndex]) && attempts < players.length);
+
+            if (eliminatedPlayers.size >= players.length - 1) {
+                alert('Spiel beendet! Gewinner: ' + colorMap[players[currentPlayerIndex]].name);
+                return;
+            }
+
+            updateDisplay();
+            startTimer();
+        }
+
+        function previousPlayer() {
+            stopTimer();
+
+            let attempts = 0;
+            do {
+                currentPlayerIndex = (currentPlayerIndex - 1 + players.length) % players.length;
+                attempts++;
+            } while (eliminatedPlayers.has(players[currentPlayerIndex]) && attempts < players.length);
+
+            updateDisplay();
+            startTimer();
+        }
+
+        function showTimeoutModal(color) {
+            document.getElementById('timeoutPlayerName').textContent =
+                colorMap[color].name + ' hat keine Zeit mehr!';
+            document.getElementById('timeoutModal').classList.remove('hidden');
+        }
+
+        function addExtraTime() {
+            const currentColor = players[currentPlayerIndex];
+            playerTimes[currentColor] = 300;
+            document.getElementById('timeoutModal').classList.add('hidden');
+            updateDisplay();
+            startTimer();
+        }
+
+        function eliminatePlayer() {
+            const currentColor = players[currentPlayerIndex];
+            eliminatedPlayers.add(currentColor);
+            document.getElementById('timeoutModal').classList.add('hidden');
+            nextPlayer();
+        }
+
+        // Zeiten in localStorage speichern beim Settings-Klick
+        document.querySelector('a[href*="settings"]').addEventListener('click', function(e) {
+            stopTimer();
+            localStorage.setItem('playerTimes', JSON.stringify(playerTimes));
+            localStorage.setItem('currentPlayerIndex', currentPlayerIndex);
+            localStorage.setItem('eliminatedPlayers', JSON.stringify([...eliminatedPlayers]));
+        });
+
+        // Event Listener
+        document.getElementById('nextPlayerBtn').addEventListener('click', nextPlayer);
+
+        // Start
+        updateDisplay();
+        startTimer();
+    </script>
+</body>
+</html>
